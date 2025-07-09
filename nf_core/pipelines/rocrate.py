@@ -7,7 +7,7 @@ import re
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Set, Union
+from typing import Optional, Union
 
 import requests
 import rocrate.rocrate
@@ -42,7 +42,7 @@ def custom_make_crate(
     wf_name: Optional[str] = None,
     wf_version: Optional[str] = None,
     lang_version: Optional[str] = None,
-    ci_workflow: Optional[str] = "ci.yml",
+    ci_workflow: Optional[str] = "nf-test.yml",
     diagram: Optional[Path] = None,
 ) -> BaseROCrate:
     builder = CustomNextflowCrateBuilder(root, repo_url=repo_url)
@@ -285,7 +285,7 @@ class ROCrate:
         authors = list(set(authors))
         # look at git contributors for author names
         try:
-            git_contributors: Set[str] = set()
+            git_contributors: set[str] = set()
             if self.pipeline_obj.repo is None:
                 log.debug("No git repository found. No git contributors will be added as authors.")
                 return

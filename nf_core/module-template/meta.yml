@@ -1,9 +1,6 @@
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
 name: "{{ component_name_underscore }}"
-{% if not_empty_template -%}
-## TODO nf-core: Add a description of the module and list keywords
-{% endif -%}
 description: write your description here
 keywords:
   - sort
@@ -11,9 +8,6 @@ keywords:
   - genomics
 tools:
   - "{{ component }}":
-      {% if not_empty_template -%}
-      ## TODO nf-core: Add a description and other details for the software below
-      {% endif -%}
       description: "{{ tool_description }}"
       homepage: "{{ tool_doc_url }}"
       documentation: "{{ tool_doc_url }}"
@@ -22,65 +16,43 @@ tools:
       licence: {{ tool_licence }}
       identifier: {{ tool_identifier }}
 
-{% if not_empty_template -%}
-## TODO nf-core: Add a description of all of the variables used as input
-{% endif -%}
 input:
-  #{% if has_meta %} Only when we have meta
   - - meta:
         type: map
         description: |
           Groovy Map containing sample information
-          e.g. `[ id:'sample1', single_end:false ]`
-  {% endif %}
-  {% if not_empty_template -%}
-  ## TODO nf-core: Delete / customise this example input
-  {%- endif %}
-    - {{ 'bam:' if not_empty_template else "input:" }}
+          e.g. `[ id:'sample1' ]`
+    - bam:
         type: file
-        description: {{ 'Sorted BAM/CRAM/SAM file' if not_empty_template else "" }}
-        pattern: {{ '"*.{bam,cram,sam}"' if not_empty_template else "" }}
+        description: Sorted BAM/CRAM/SAM file
+        pattern: "*.{bam,cram,sam}"
         ontologies:
-          {% if not_empty_template -%}
-          - edam: "http://edamontology.org/format_25722"
-          - edam: "http://edamontology.org/format_2573"
-          - edam: "http://edamontology.org/format_3462"
-          {% else %}
-          - edam: ""
-          {%- endif %}
+          - edam: "http://edamontology.org/format_2572" # BAM
+          - edam: "http://edamontology.org/format_2573" # CRAM
+          - edam: "http://edamontology.org/format_3462" # SAM
 
-{% if not_empty_template -%}
-## TODO nf-core: Add a description of all of the variables used as output
-{% endif -%}
 output:
-  - {{ 'bam:' if not_empty_template else "output:" }}
-  #{% if has_meta -%} Only when we have meta
-    - meta:
-        type: map
-        description: |
-          Groovy Map containing sample information
-          e.g. `[ id:'sample1', single_end:false ]`
-  {%- endif %}
-  {% if not_empty_template -%}
-    ## TODO nf-core: Delete / customise this example output
-  {%- endif %}
-    - {{ '"*.bam":' if not_empty_template else '"*":' }}
-        type: file
-        description: {{ 'Sorted BAM/CRAM/SAM file' if not_empty_template else "" }}
-        pattern: {{ '"*.{bam,cram,sam}"' if not_empty_template else "" }}
-        ontologies:
-          {% if not_empty_template -%}
-          - edam: "http://edamontology.org/format_25722"
-          - edam: "http://edamontology.org/format_2573"
-          - edam: "http://edamontology.org/format_3462"
-          {% else -%}
-          - edam: ""
-          {%- endif %}
-  - versions:
+  bam:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1' ]`
+      - "*.bam":
+          type: file
+          description: Sorted BAM/CRAM/SAM file
+          pattern: "*.{bam,cram,sam}"
+          ontologies:
+            - edam: "http://edamontology.org/format_2572" # BAM
+            - edam: "http://edamontology.org/format_2573" # CRAM
+            - edam: "http://edamontology.org/format_3462" # SAM
+  versions:
     - "versions.yml":
         type: file
         description: File containing software versions
         pattern: "versions.yml"
+        ontologies:
+          - edam: "http://edamontology.org/format_3750" # YAML
 
 authors:
   - "{{ author }}"

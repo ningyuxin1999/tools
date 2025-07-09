@@ -9,7 +9,7 @@ import json
 import logging
 import os
 from pathlib import Path
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Union
 
 import git
 import rich
@@ -32,7 +32,7 @@ from nf_core.utils import plural_s as _s
 
 from .actions_awsfulltest import actions_awsfulltest
 from .actions_awstest import actions_awstest
-from .actions_ci import actions_ci
+from .actions_nf_test import actions_nf_test
 from .actions_schema_validation import actions_schema_validation
 from .configs import base_config, modules_config
 from .files_exist import files_exist
@@ -44,18 +44,20 @@ from .modules_json import modules_json
 from .modules_structure import modules_structure
 from .multiqc_config import multiqc_config
 from .nextflow_config import nextflow_config
+from .nf_test_content import nf_test_content
 from .nfcore_yml import nfcore_yml
+from .pipeline_if_empty_null import pipeline_if_empty_null
 from .pipeline_name_conventions import pipeline_name_conventions
 from .pipeline_todos import pipeline_todos
 from .plugin_includes import plugin_includes
 from .readme import readme
+from .rocrate_readme_sync import rocrate_readme_sync
 from .schema_description import schema_description
 from .schema_lint import schema_lint
 from .schema_params import schema_params
 from .system_exit import system_exit
 from .template_strings import template_strings
 from .version_consistency import version_consistency
-from .rocrate_readme_sync import rocrate_readme_sync
 
 log = logging.getLogger(__name__)
 
@@ -82,7 +84,7 @@ class PipelineLint(nf_core.utils.Pipeline):
     # Import all linting tests as methods for this class
     actions_awsfulltest = actions_awsfulltest
     actions_awstest = actions_awstest
-    actions_ci = actions_ci
+    actions_nf_test = actions_nf_test
     actions_schema_validation = actions_schema_validation
     base_config = base_config
     modules_config = modules_config
@@ -94,9 +96,11 @@ class PipelineLint(nf_core.utils.Pipeline):
     local_component_structure = local_component_structure
     multiqc_config = multiqc_config
     nextflow_config = nextflow_config
+    nf_test_content = nf_test_content
     nfcore_yml = nfcore_yml
     pipeline_name_conventions = pipeline_name_conventions
     pipeline_todos = pipeline_todos
+    pipeline_if_empty_null = pipeline_if_empty_null
     plugin_includes = plugin_includes
     readme = readme
     schema_description = schema_description
@@ -138,12 +142,14 @@ class PipelineLint(nf_core.utils.Pipeline):
         return [
             "files_exist",
             "nextflow_config",
+            "nf_test_content",
             "files_unchanged",
-            "actions_ci",
+            "actions_nf_test",
             "actions_awstest",
             "actions_awsfulltest",
             "readme",
             "pipeline_todos",
+            "pipeline_if_empty_null",
             "plugin_includes",
             "pipeline_name_conventions",
             "template_strings",
@@ -524,7 +530,7 @@ class PipelineLint(nf_core.utils.Pipeline):
         with open(json_fn, "w") as fh:
             json.dump(results, fh, indent=4)
 
-    def _wrap_quotes(self, files: Union[List[str], List[Path], Path]) -> str:
+    def _wrap_quotes(self, files: Union[list[str], list[Path], Path]) -> str:
         """Helper function to take a list of filenames and format with markdown.
 
         Args:
@@ -555,7 +561,7 @@ def run_linting(
     md_fn=None,
     json_fn=None,
     hide_progress: bool = False,
-) -> Tuple[PipelineLint, Optional[ComponentLint], Optional[ComponentLint]]:
+) -> tuple[PipelineLint, Optional[ComponentLint], Optional[ComponentLint]]:
     """Runs all nf-core linting checks on a given Nextflow pipeline project
     in either `release` mode or `normal` mode (default). Returns an object
     of type :class:`PipelineLint` after finished.
@@ -600,7 +606,7 @@ def run_linting(
     lint_obj._load_lint_config()
     lint_obj.load_pipeline_config()
 
-    if lint_obj.lint_config and not lint_obj.lint_config["nfcore_components"]:
+    if lint_obj.lint_config and lint_obj.lint_config["nfcore_components"] is not None:
         module_lint_obj = None
         subworkflow_lint_obj = None
     else:
