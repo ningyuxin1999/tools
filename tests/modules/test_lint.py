@@ -5,6 +5,7 @@ from typing import Union
 
 import yaml
 from git.repo import Repo
+from reftrace import Module, ParseError
 
 import nf_core.modules.lint
 import nf_core.modules.patch
@@ -16,76 +17,49 @@ from ..utils import GITLAB_NFTEST_BRANCH, GITLAB_URL
 from .test_patch import BISMARK_ALIGN, CORRECT_SHA, PATCH_BRANCH, REPO_NAME, modify_main_nf
 
 PROCESS_LABEL_GOOD = (
-    """
-    label 'process_high'
-    cpus 12
-    """,
+    "process_high",
     1,
     0,
     0,
 )
 PROCESS_LABEL_NON_ALPHANUMERIC = (
-    """
-    label 'a:label:with:colons'
-    cpus 12
-    """,
+    "a:label:with:colons",
     0,
     2,
     0,
 )
 PROCESS_LABEL_GOOD_CONFLICTING = (
-    """
-    label 'process_high'
-    label 'process_low'
-    cpus 12
-    """,
+    "process_high process_low",
     0,
     1,
     0,
 )
 PROCESS_LABEL_GOOD_DUPLICATES = (
-    """
-    label 'process_high'
-    label 'process_high'
-    cpus 12
-    """,
+    "process_high process_high",
     0,
     2,
     0,
 )
 PROCESS_LABEL_GOOD_AND_NONSTANDARD = (
-    """
-    label 'process_high'
-    label 'process_extra_label'
-    cpus 12
-    """,
+    "process_high process_extra_label",
     1,
     1,
     0,
 )
 PROCESS_LABEL_NONSTANDARD = (
-    """
-    label 'process_extra_label'
-    cpus 12
-    """,
+    "process_extra_label",
     0,
     2,
     0,
 )
 PROCESS_LABEL_NONSTANDARD_DUPLICATES = (
-    """
-    label process_extra_label
-    label process_extra_label
-    cpus 12
-    """,
+    "process_extra_label process_extra_label",
     0,
     3,
     0,
 )
 PROCESS_LABEL_NONE_FOUND = (
-    """
-    cpus 12
-    """,
+    " ",
     0,
     1,
     0,
@@ -291,11 +265,15 @@ class TestModulesLint(TestModules):
     def test_modules_lint_check_process_labels(self):
         for test_case in PROCESS_LABEL_TEST_CASES:
             process, passed, warned, failed = test_case
-            mocked_ModuleLint = MockModuleLint()
-            check_process_labels(mocked_ModuleLint, process.splitlines())
-            assert len(mocked_ModuleLint.passed) == passed
-            assert len(mocked_ModuleLint.warned) == warned
-            assert len(mocked_ModuleLint.failed) == failed
+            module_lint = nf_core.modules.lint.ModuleLint(directory=self.nfcore_modules)
+            module = Module.from_file(str(Path(self.nfcore_modules, "modules", "nf-core", "bpipe", "test", "main.nf")))
+            assert not isinstance(module, ParseError)
+            assert len(module.processes) == 1
+            module.processes[0].labels[0] = process
+            check_process_labels(module_lint, module)
+            assert len(module_lint.passed) == passed
+            assert len(module_lint.warned) == warned
+            assert len(module_lint.failed) == failed
 
     def test_modules_lint_check_url(self):
         for test_case in CONTAINER_TEST_CASES:
