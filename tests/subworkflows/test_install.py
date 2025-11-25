@@ -200,3 +200,11 @@ class TestSubworkflowsInstall(TestSubworkflows):
         with pytest.raises(Exception) as excinfo:
             install_obj.install("fastqc")
             assert "Could not find a 'main.nf' or 'nextflow.config' file" in str(excinfo.value)
+
+    def test_subworkflow_install_module_not_found(self):
+        """Test failure when a module is not found in the list of available modules"""
+        with pytest.raises(ValueError) as excinfo:
+            # Attempt to install a non-existent module
+            self.subworkflow_install.install("non_existent_module")
+            assert "Module 'non_existent_module' not found in available modules" in str(excinfo.value)
+            assert excinfo.typename == "ValueError"
